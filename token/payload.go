@@ -36,3 +36,13 @@ func NewPayload(username string, duration time.Duration) (*Payload, error) {
 
 	return payload, nil
 }
+
+func (p *Payload) Valid() error {
+	if p.IssuedAt.IsZero() {
+		return ErrInvalidToken
+	}
+	if p.ExpiresAt.IsZero() {
+		return ErrInvalidToken
+	}
+	return nil
+}
