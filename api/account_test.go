@@ -95,7 +95,7 @@ func TestGetAccountApi(t *testing.T) {
 			tc.buildStubs(store)
 
 			// 4. Создаём сервер с мок-хранилищем
-			server := NewServer(store)
+			server := newTestServer(t, store)
 
 			// 5. Создаём HTTP-запрос (НЕ отправляем по сети!)
 			url := fmt.Sprintf("/accounts/%d", tc.accountID)
