@@ -1,0 +1,22 @@
+name: Deploy to production (GHCR)
+
+on:
+  push:
+    branches: [ "main" ]
+
+env:
+  REGISTRY: cr.yandex
+  IMAGE_NAME: simplebank-api
+
+jobs:
+  build_and_push:
+    name: Build image
+    runs-on: ubuntu-latest
+      
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and push the image
+        run: |
+          docker login --username indefinitee --password ${{ secrets.GH_PAT }} ghcr.io
+          docker build . --tag ghcr.io/indefinitee/simplebank:latest
+          docker push ghcr.io/indefinitee/simplebank:latest
