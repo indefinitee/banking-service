@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: migrate-job
+  namespace: db
+spec:
+  restartPolicy: Never
+  containers:
+  - name: migrate
+    image: simplebank:latest
+    imagePullPolicy: Never
+    env:
+    - name: DB_SOURCE
+      value: "postgresql://root:secret@postgres:5432/simple_bank?sslmode=disable"
+    command: ["/app/migrate"]
+    args: ["-path", "/app/migration", "-database", "$(DB_SOURCE)", "-verbose", "up"]
