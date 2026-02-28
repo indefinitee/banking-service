@@ -4,13 +4,13 @@ include makefiles/vars.mk
 
 status:
 	@echo "=== PODS ==="
-	kubectl get pods -n $(NAMESPACE) 2>/dev/null || echo "❌ Нет namespace $(NAMESPACE)"
+	@kubectl get pods -n $(NAMESPACE) 2>/dev/null || echo "❌ Нет namespace $(NAMESPACE)"
 	@echo ""
 	@echo "=== SERVICES ==="
-	kubectl get svc -n $(NAMESPACE) 2>/dev/null || echo "❌ Нет сервисов"
+	@kubectl get svc -n $(NAMESPACE) 2>/dev/null || echo "❌ Нет сервисов"
 	@echo ""
 	@echo "=== SECRETS ==="
-	kubectl get secrets -n $(NAMESPACE) 2>/dev/null || echo "❌ Нет секретов"
+	@kubectl get secrets -n $(NAMESPACE) 2>/dev/null || echo "❌ Нет секретов"
 
 fresh: cluster-delete cluster-create image-import namespace-create secret-create postgres-up api-up
 	@echo "watch logs: make api-logs"
