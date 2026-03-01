@@ -1,22 +1,52 @@
-name: Deploy to production (GHCR)
+name: CI/CD GitOps
 
 on:
   push:
     branches: [ "main" ]
 
-env:
-  REGISTRY: cr.yandex
-  IMAGE_NAME: simplebank-api
-
 jobs:
   build_and_push:
-    name: Build image
     runs-on: ubuntu-latest
-      
+    outputs:
+      tag: ${{ steps.vars.outputs.tag }}
     steps:
       - uses: actions/checkout@v4
-      - name: Build and push the image
+
+      - name: Set image tag
+        id: vars
+        run: echo "tag=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+
+      - name: Login to GHCR
+        run: echo "${{ secrets.GH_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Build and push
         run: |
-          docker login --username indefinitee --password ${{ secrets.GH_PAT }} ghcr.io
-          docker build . --tag ghcr.io/indefinitee/simplebank:latest
-          docker push ghcr.io/indefinitee/simplebank:latest
+          docker build -t ghcr.io/indefinitee/simplebank:${{ steps.vars.outputs.tag }} .
+          docker push ghcr.io/indefinitee/simplebank:${{ steps.vars.outputs.tag }}
+
+  update_manifest:
+    needs: build_and_push
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_PAT }} # Нужен токен с правами на запись в репо
+
+      - name: Update Kubernetes resources
+        run: |
+          # Меняем старый тег на новый хеш коммита в файле
+          sed -i "s|image: ghcr.io/indefinitee/simplebank:.*|image: ghcr.io/indefinitee/simplebank:${{ needs.build_and_push.outputs.tag }}|g" k8s/api-deployment.yaml
+          
+      - name: Commit and push changes
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "actions@github.com"
+          git add k8s/api-deployment.yaml
+
+          # Проверяем, есть ли изменения, прежде чем коммитить
+          if git diff --quiet && git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "deploy: update image to ${{ needs.build_and_push.outputs.tag }}"
+            git push
+          fi
