@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	db "github.com/indefinitee/simplebank/db/sqlc"
 	"github.com/indefinitee/simplebank/util"
 	"github.com/lib/pq"
@@ -83,8 +84,12 @@ type loginUserRequest struct {
 }
 
 type loginUserResponse struct {
-	AccessToken string       `json:"access_token"`
-	User        userResponse `json:"user"`
+	SessionId             uuid.UUID    `json:"session_id"`
+	AccessToken           string       `json:"access_token"`
+	AccessTokenExpiresAt  time.Time    `json:"access_token_expires_at"`
+	RefreshToken          string       `json:"refresh_token"`
+	RefreshTokenExpiresAt time.Time    `json:"refresh_token_expires_at"`
+	User                  userResponse `json:"user"`
 }
 
 func (s *Server) loginUser(ctx *gin.Context) {
@@ -101,6 +106,7 @@ func (s *Server) loginUser(ctx *gin.Context) {
 			return
 		}
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
 	}
 
 	err = util.CheckPassword(req.Password, user.HashedPassword)
@@ -109,7 +115,7 @@ func (s *Server) loginUser(ctx *gin.Context) {
 		return
 	}
 
-	accessToken, err := s.tokenMaker.CreateToken(
+	accessToken, accessPayload, err := s.tokenMaker.CreateToken(
 		user.Username,
 		s.config.AccessTokenDuration,
 	)
@@ -118,9 +124,42 @@ func (s *Server) loginUser(ctx *gin.Context) {
 		return
 	}
 
+	refreshToken, refreshPayload, err := s.tokenMaker.CreateToken(
+		user.Username,
+		s.config.RefreshTokenDuration,
+	)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	sessionId, err := uuid.Parse(refreshPayload.ID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	session, err := s.store.CreateSession(ctx, db.CreateSessionParams{
+		ID:           sessionId,
+		Username:     user.Username,
+		RefreshToken: refreshToken,
+		UserAgent:    ctx.Request.UserAgent(),
+		ClientIp:     ctx.ClientIP(),
+		IsBlocked:    false,
+		ExpiresAt:    refreshPayload.ExpiresAt.Time,
+	})
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
 	rsp := loginUserResponse{
-		AccessToken: accessToken,
-		User:        newUserResponse(user),
+		SessionId:             session.ID,
+		AccessToken:           accessToken,
+		AccessTokenExpiresAt:  accessPayload.ExpiresAt.Time,
+		RefreshToken:          refreshToken,
+		RefreshTokenExpiresAt: refreshPayload.ExpiresAt.Time,
+		User:                  newUserResponse(user),
 	}
 
 	ctx.JSON(http.StatusOK, rsp)
