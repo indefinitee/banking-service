@@ -1,6 +1,6 @@
 include makefiles/vars.mk
 
-.PHONY: status fresh clean
+.PHONY: status fresh clean fix-hosts
 
 status:
 	@echo "=== PODS ==="
@@ -21,3 +21,7 @@ clean:
 	kubectl delete secret api-secret -n $(NAMESPACE) --ignore-not-found=true
 	kubectl delete namespace $(NAMESPACE) --ignore-not-found=true
 	@echo "✅ Всё очищено (кроме кластера)"
+
+fix-hosts:
+	@echo "127.0.0.1 simplebank.local" | sudo tee -a /etc/hosts
+	@echo "✅ Hosts entry added"
