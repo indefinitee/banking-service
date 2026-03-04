@@ -5,6 +5,7 @@ include makefiles/cluster.mk
 include makefiles/k8s-resources.mk
 include makefiles/dev.mk
 include makefiles/utils.mk
+include makefiles/db-docs.mk
 
 .PHONY: help
 help:
@@ -44,3 +45,6 @@ help:
 	@echo "  make status      - статус подов в k3d"
 	@echo "  make fresh       - полная переустановка (cluster + db + api)"
 	@echo "  make clean       - удалить все ресурсы (кроме кластера)"
+	@echo ""
+	@echo "  make db_docs     - генерация db документации"
+	@echo "  make db_schema   - генерация db схемы"
