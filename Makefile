@@ -6,6 +6,7 @@ include makefiles/k8s-resources.mk
 include makefiles/dev.mk
 include makefiles/utils.mk
 include makefiles/db-docs.mk
+include makefiles/proto.mk
 
 .PHONY: help
 help:
