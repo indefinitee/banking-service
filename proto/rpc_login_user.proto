@@ -1,9 +1,9 @@
-syntax = 'proto3';
+syntax = "proto3";
 
 package pb;
 
-import "user.proto";
 import "google/protobuf/timestamp.proto";
+import "user.proto";
 
 option go_package = "github.com/indefinitee/simplebank/pb";
 
@@ -16,7 +16,7 @@ message LoginUserResponse {
 	User user = 1;
     string session_id = 2;
     string access_token = 3;
-	string access_token_expires_at = 4;  
-	google.protobuf.Timestamp refresh_token = 5;
+	string refresh_token = 4;
+	google.protobuf.Timestamp access_token_expires_at = 5;  
 	google.protobuf.Timestamp refresh_token_expires_at = 6; 
 }

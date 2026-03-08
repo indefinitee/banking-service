@@ -79,8 +79,8 @@ type LoginUserResponse struct {
 	User                  *User                  `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
 	SessionId             string                 `protobuf:"bytes,2,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
 	AccessToken           string                 `protobuf:"bytes,3,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
-	AccessTokenExpiresAt  string                 `protobuf:"bytes,4,opt,name=access_token_expires_at,json=accessTokenExpiresAt,proto3" json:"access_token_expires_at,omitempty"`
-	RefreshToken          *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=refresh_token,json=refreshToken,proto3" json:"refresh_token,omitempty"`
+	RefreshToken          string                 `protobuf:"bytes,4,opt,name=refresh_token,json=refreshToken,proto3" json:"refresh_token,omitempty"`
+	AccessTokenExpiresAt  *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=access_token_expires_at,json=accessTokenExpiresAt,proto3" json:"access_token_expires_at,omitempty"`
 	RefreshTokenExpiresAt *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=refresh_token_expires_at,json=refreshTokenExpiresAt,proto3" json:"refresh_token_expires_at,omitempty"`
 	unknownFields         protoimpl.UnknownFields
 	sizeCache             protoimpl.SizeCache
@@ -137,16 +137,16 @@ func (x *LoginUserResponse) GetAccessToken() string {
 	return ""
 }
 
-func (x *LoginUserResponse) GetAccessTokenExpiresAt() string {
+func (x *LoginUserResponse) GetRefreshToken() string {
 	if x != nil {
-		return x.AccessTokenExpiresAt
+		return x.RefreshToken
 	}
 	return ""
 }
 
-func (x *LoginUserResponse) GetRefreshToken() *timestamppb.Timestamp {
+func (x *LoginUserResponse) GetAccessTokenExpiresAt() *timestamppb.Timestamp {
 	if x != nil {
-		return x.RefreshToken
+		return x.AccessTokenExpiresAt
 	}
 	return nil
 }
@@ -162,8 +162,8 @@ var File_rpc_login_user_proto protoreflect.FileDescriptor
 
 const file_rpc_login_user_proto_rawDesc = "" +
 	"\n" +
-	"\x14rpc_login_user.proto\x12\x02pb\x1a\n" +
-	"user.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"J\n" +
+	"\x14rpc_login_user.proto\x12\x02pb\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\n" +
+	"user.proto\"J\n" +
 	"\x10LoginUserRequest\x12\x1a\n" +
 	"\busername\x18\x01 \x01(\tR\busername\x12\x1a\n" +
 	"\bpassword\x18\x02 \x01(\tR\bpassword\"\xc0\x02\n" +
@@ -171,9 +171,9 @@ const file_rpc_login_user_proto_rawDesc = "" +
 	"\x04user\x18\x01 \x01(\v2\b.pb.UserR\x04user\x12\x1d\n" +
 	"\n" +
 	"session_id\x18\x02 \x01(\tR\tsessionId\x12!\n" +
-	"\faccess_token\x18\x03 \x01(\tR\vaccessToken\x125\n" +
-	"\x17access_token_expires_at\x18\x04 \x01(\tR\x14accessTokenExpiresAt\x12?\n" +
-	"\rrefresh_token\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\frefreshToken\x12S\n" +
+	"\faccess_token\x18\x03 \x01(\tR\vaccessToken\x12#\n" +
+	"\rrefresh_token\x18\x04 \x01(\tR\frefreshToken\x12Q\n" +
+	"\x17access_token_expires_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\x14accessTokenExpiresAt\x12S\n" +
 	"\x18refresh_token_expires_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\x15refreshTokenExpiresAtB&Z$github.com/indefinitee/simplebank/pbb\x06proto3"
 
 var (
@@ -197,7 +197,7 @@ var file_rpc_login_user_proto_goTypes = []any{
 }
 var file_rpc_login_user_proto_depIdxs = []int32{
 	2, // 0: pb.LoginUserResponse.user:type_name -> pb.User
-	3, // 1: pb.LoginUserResponse.refresh_token:type_name -> google.protobuf.Timestamp
+	3, // 1: pb.LoginUserResponse.access_token_expires_at:type_name -> google.protobuf.Timestamp
 	3, // 2: pb.LoginUserResponse.refresh_token_expires_at:type_name -> google.protobuf.Timestamp
 	3, // [3:3] is the sub-list for method output_type
 	3, // [3:3] is the sub-list for method input_type

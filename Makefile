@@ -7,6 +7,7 @@ include makefiles/dev.mk
 include makefiles/utils.mk
 include makefiles/db-docs.mk
 include makefiles/proto.mk
+include makefiles/evans.mk
 
 .PHONY: help
 help:
