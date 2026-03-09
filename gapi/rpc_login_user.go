@@ -51,12 +51,13 @@ func (s *Server) LoginUser(ctx context.Context, req *pb.LoginUserRequest) (*pb.L
 		return nil, status.Errorf(codes.Internal, "failed to parse sessionId: %s", err)
 	}
 
+	mtdt := s.extractMetadata(ctx)
 	session, err := s.store.CreateSession(ctx, db.CreateSessionParams{
 		ID:           sessionId,
 		Username:     user.Username,
 		RefreshToken: refreshToken,
-		UserAgent:    "",
-		ClientIp:     "",
+		UserAgent:    mtdt.UserAgent,
+		ClientIp:     mtdt.ClientIp,
 		IsBlocked:    false,
 		ExpiresAt:    refreshPayload.ExpiresAt.Time,
 	})
