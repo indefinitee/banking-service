@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/hibiken/asynq"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
@@ -19,6 +20,7 @@ import (
 	"github.com/indefinitee/simplebank/gapi"
 	"github.com/indefinitee/simplebank/pb"
 	"github.com/indefinitee/simplebank/util"
+	"github.com/indefinitee/simplebank/worker"
 	"github.com/rakyll/statik/fs"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -47,8 +49,16 @@ func main() {
 	runDbMigration(config.MigrationURL, config.DBSource)
 
 	store := db.NewStore(conn)
-	go runGatewayServer(config, store)
-	runGrpcServer(config, store)
+
+	redisOpt := asynq.RedisClientOpt{
+		Addr: config.RedisAddress,
+	}
+
+	taskDistributor := worker.NewRedisTaskDistributor(redisOpt)
+
+	go runTaskProcessor(redisOpt, store)
+	go runGatewayServer(config, store, taskDistributor)
+	runGrpcServer(config, store, taskDistributor)
 
 	// runGinServer(config, store)
 }
@@ -66,8 +76,17 @@ func runDbMigration(migrationURL, dbSource string) {
 	log.Print("db migrated successfully")
 }
 
-func runGrpcServer(config util.Config, store db.Store) {
-	server, err := gapi.NewServer(config, store)
+func runTaskProcessor(redisOpt asynq.RedisClientOpt, store db.Store) {
+	taskProcessor := worker.NewRedisTaskProcessor(redisOpt, store)
+	log.Info().Msg("start task processor")
+	err := taskProcessor.Start()
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed to start task processor")
+	}
+}
+
+func runGrpcServer(config util.Config, store db.Store, taskDistributor *worker.RedisTaskDistributor) {
+	server, err := gapi.NewServer(config, store, taskDistributor)
 	if err != nil {
 		log.Fatal().Err(err).Msg("cannot create server")
 	}
@@ -89,8 +108,8 @@ func runGrpcServer(config util.Config, store db.Store) {
 	}
 }
 
-func runGatewayServer(config util.Config, store db.Store) {
-	server, err := gapi.NewServer(config, store)
+func runGatewayServer(config util.Config, store db.Store, taskDistributor *worker.RedisTaskDistributor) {
+	server, err := gapi.NewServer(config, store, taskDistributor)
 	if err != nil {
 		log.Fatal().Err(err).Msg("cannot create server")
 	}
