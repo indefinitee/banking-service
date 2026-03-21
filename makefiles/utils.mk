@@ -1,6 +1,6 @@
 include makefiles/vars.mk
 
-.PHONY: status fresh clean fix-hosts redis
+.PHONY: status fresh clean fix-hosts
 
 status:
 	@echo "=== PODS ==="
@@ -26,5 +26,3 @@ fix-hosts:
 	@echo "127.0.0.1 simplebank.local" | sudo tee -a /etc/hosts
 	@echo "✅ Hosts entry added"
 
-redis:
-	docker run --name redis -p 6379:6379 -d redis:8-alpine
