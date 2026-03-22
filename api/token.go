@@ -1,7 +1,6 @@
 package api
 
 import (
-	"database/sql"
 	"errors"
 	"fmt"
 	"net/http"
@@ -9,6 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	db "github.com/indefinitee/simplebank/db/sqlc"
 )
 
 type renewAccessTokenRequest struct {
@@ -41,7 +41,7 @@ func (s *Server) renewAccessToken(ctx *gin.Context) {
 
 	session, err := s.store.GetSession(ctx, sessionId)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
+		if errors.Is(err, db.ErrRecordNotFound) {
 			ctx.JSON(http.StatusNotFound, errorResponse(err))
 			return
 		}
