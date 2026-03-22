@@ -70,11 +70,18 @@ func runDbMigration(migrationURL, dbSource string) {
 		log.Fatal().Err(err).Msg("cannot create new migrate instance")
 	}
 
+	version, dirty, err := migration.Version()
+	if err != nil && err != migrate.ErrNilVersion {
+		log.Fatal().Err(err).Msg("failed to get migration version")
+	}
+	log.Info().Msgf("Current DB version: %d, Dirty: %v", version, dirty)
+
 	if err = migration.Up(); err != nil && err != migrate.ErrNoChange {
 		log.Fatal().Err(err).Msg("failed to run migrate up")
 	}
 
-	log.Print("db migrated successfully")
+	newVersion, _, _ := migration.Version()
+	log.Info().Msgf("DB migrated successfully. New version: %d", newVersion)
 }
 
 func runTaskProcessor(config util.Config, redisOpt asynq.RedisClientOpt, store db.Store) {
